@@ -3,4 +3,36 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
          version="4.0">
+
+    <servlet>
+        <servlet-name>queryServlet</servlet-name>
+        <servlet-class>ru.itpark.servlet.QueryServlet</servlet-class>
+        <multipart-config/>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>queryServlet</servlet-name>
+        <url-pattern>/query-servlet</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>search</servlet-name>
+        <jsp-file>/WEB-INF/search.jsp</jsp-file>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>search</servlet-name>
+        <url-pattern/>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>result</servlet-name>
+        <jsp-file>/WEB-INF/result.jsp</jsp-file>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>result</servlet-name>
+        <url-pattern>/result</url-pattern>
+    </servlet-mapping>
+
 </web-app>
