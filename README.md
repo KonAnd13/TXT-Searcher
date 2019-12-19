@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/KonAnd13/TXT-Searcher.svg?branch=master)](https://travis-ci.org/KonAnd13/TXT-Searcher)
+
+https://itpark-txtsearcher.herokuapp.com/
 # TXT Searcher
 
 TXT Searcher - поисковая система с веб-интерфейсом, со следующими функциями:
