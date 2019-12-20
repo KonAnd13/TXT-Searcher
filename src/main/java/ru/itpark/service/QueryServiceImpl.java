@@ -1,9 +1,9 @@
 package ru.itpark.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import ru.itpark.constants.Constants;
 import ru.itpark.enumeration.Status;
-import ru.itpark.exception.DataAccesException;
 import ru.itpark.model.QueryModel;
 import ru.itpark.repository.QueryRepository;
 
@@ -14,11 +14,17 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @RequiredArgsConstructor
-public class QueryServiceImpl implements QueryService {
+@Setter
+public class QueryServiceImpl implements QueryService, Runnable {
     private final QueryRepository repository;
     private final FileService fileService;
+    private QueryModel queryModel;
+    private Collection<Part> parts;
+    private final ExecutorService executorService = Executors.newFixedThreadPool(2);
 
     @Override
     public void init() {
@@ -42,6 +48,14 @@ public class QueryServiceImpl implements QueryService {
 
     @Override
     public void search(QueryModel queryModel, Collection<Part> parts) {
+        this.setQueryModel(queryModel);
+        this.setParts(parts);
+        executorService.execute(this);
+        executorService.shutdown();
+    }
+
+    @Override
+    public void run() {
         try (BufferedWriter writer = Files.newBufferedWriter(Constants.PATH_RESULT_DIRECTORY.resolve(queryModel.getId() + ".txt"), StandardOpenOption.CREATE)) {
             for (Part part : parts) {
                 if (part.getSubmittedFileName() != null) {
@@ -59,7 +73,7 @@ public class QueryServiceImpl implements QueryService {
             queryModel.setStatus(Status.DONE);
             updateQuery(queryModel);
         } catch (IOException e) {
-            throw new DataAccesException();
+            e.printStackTrace();
         }
     }
 }
