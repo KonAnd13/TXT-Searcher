@@ -7,6 +7,7 @@ import ru.itpark.model.QueryModel;
 import ru.itpark.repository.QueryRepository;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
@@ -43,7 +44,7 @@ public class QueryServiceImpl implements QueryService {
         executorService.execute(() -> {
             try (BufferedWriter writer = Files.newBufferedWriter(Constants.PATH_RESULT_DIRECTORY.resolve(queryModel.getId() + ".txt"), StandardOpenOption.CREATE)) {
                 for (String name : names) {
-                    try (BufferedReader reader = Files.newBufferedReader(Constants.PATH_UPLOAD_DIRECTORY.resolve(name))) {
+                    try (BufferedReader reader = Files.newBufferedReader(Constants.PATH_UPLOAD_DIRECTORY.resolve(name), Charset.defaultCharset())) {
                         while (reader.ready()) {
                             String line = reader.readLine();
                             if (line.toLowerCase().contains(queryModel.getQuery().toLowerCase())) {
