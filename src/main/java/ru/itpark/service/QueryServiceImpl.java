@@ -6,6 +6,7 @@ import ru.itpark.enumeration.Status;
 import ru.itpark.exception.DataAccesException;
 import ru.itpark.model.QueryModel;
 import ru.itpark.repository.QueryRepository;
+
 import javax.servlet.http.Part;
 import java.io.*;
 import java.nio.file.Files;
@@ -41,20 +42,15 @@ public class QueryServiceImpl implements QueryService {
 
     @Override
     public void search(QueryModel queryModel, Collection<Part> parts) {
-        try {
-            if (!Files.exists(Constants.PATH_RESULT_DIRECTORY)) {
-                Files.createDirectory(Constants.PATH_RESULT_DIRECTORY);
-            }
-            try (BufferedWriter writer = Files.newBufferedWriter(Constants.PATH_RESULT_DIRECTORY.resolve(queryModel.getId() + ".txt"), StandardOpenOption.CREATE)) {
-                for (Part part : parts) {
-                    if (part.getSubmittedFileName() != null) {
-                        Path pathUploadFile = fileService.writeFile(part);
-                        try (BufferedReader reader = Files.newBufferedReader(pathUploadFile)) {
-                            while (reader.ready()) {
-                                String line = reader.readLine();
-                                if (line.toLowerCase().contains(queryModel.getQuery().toLowerCase())) {
-                                    writer.write("[" + part.getSubmittedFileName() + "]: " + line + "\n");
-                                }
+        try (BufferedWriter writer = Files.newBufferedWriter(Constants.PATH_RESULT_DIRECTORY.resolve(queryModel.getId() + ".txt"), StandardOpenOption.CREATE)) {
+            for (Part part : parts) {
+                if (part.getSubmittedFileName() != null) {
+                    Path pathUploadFile = fileService.writeFile(part);
+                    try (BufferedReader reader = Files.newBufferedReader(pathUploadFile)) {
+                        while (reader.ready()) {
+                            String line = reader.readLine();
+                            if (line.toLowerCase().contains(queryModel.getQuery().toLowerCase())) {
+                                writer.write("[" + part.getSubmittedFileName() + "]: " + line + "\n");
                             }
                         }
                     }
