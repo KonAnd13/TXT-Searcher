@@ -1,7 +1,6 @@
 package ru.itpark.service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import ru.itpark.constants.Constants;
 import ru.itpark.enumeration.Status;
 import ru.itpark.model.QueryModel;
@@ -18,13 +17,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @RequiredArgsConstructor
-@Setter
-public class QueryServiceImpl implements QueryService, Runnable {
+public class QueryServiceImpl implements QueryService {
     private final QueryRepository repository;
     private final FileService fileService;
-    private QueryModel queryModel;
-    private Collection<Part> parts;
-    private final ExecutorService executorService = Executors.newFixedThreadPool(2);
+    private final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     @Override
     public void init() {
@@ -48,32 +44,26 @@ public class QueryServiceImpl implements QueryService, Runnable {
 
     @Override
     public void search(QueryModel queryModel, Collection<Part> parts) {
-        this.setQueryModel(queryModel);
-        this.setParts(parts);
-        executorService.execute(this);
-        executorService.shutdown();
-    }
-
-    @Override
-    public void run() {
-        try (BufferedWriter writer = Files.newBufferedWriter(Constants.PATH_RESULT_DIRECTORY.resolve(queryModel.getId() + ".txt"), StandardOpenOption.CREATE)) {
-            for (Part part : parts) {
-                if (part.getSubmittedFileName() != null) {
-                    Path pathUploadFile = fileService.writeFile(part);
-                    try (BufferedReader reader = Files.newBufferedReader(pathUploadFile)) {
-                        while (reader.ready()) {
-                            String line = reader.readLine();
-                            if (line.toLowerCase().contains(queryModel.getQuery().toLowerCase())) {
-                                writer.write("[" + part.getSubmittedFileName() + "]: " + line + "\n");
+        executorService.execute(() -> {
+            try (BufferedWriter writer = Files.newBufferedWriter(Constants.PATH_RESULT_DIRECTORY.resolve(queryModel.getId() + ".txt"), StandardOpenOption.CREATE)) {
+                for (Part part : parts) {
+                    if (part.getSubmittedFileName() != null) {
+                        Path pathUploadFile = fileService.writeFile(part);
+                        try (BufferedReader reader = Files.newBufferedReader(pathUploadFile)) {
+                            while (reader.ready()) {
+                                String line = reader.readLine();
+                                if (line.toLowerCase().contains(queryModel.getQuery().toLowerCase())) {
+                                    writer.write("[" + part.getSubmittedFileName() + "]: " + line + "\n");
+                                }
                             }
                         }
                     }
                 }
+                queryModel.setStatus(Status.DONE);
+                updateQuery(queryModel);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            queryModel.setStatus(Status.DONE);
-            updateQuery(queryModel);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        });
     }
 }
