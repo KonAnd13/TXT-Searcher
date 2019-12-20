@@ -6,12 +6,9 @@ import ru.itpark.enumeration.Status;
 import ru.itpark.model.QueryModel;
 import ru.itpark.repository.QueryRepository;
 
-import javax.servlet.http.Part;
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,7 +16,6 @@ import java.util.concurrent.Executors;
 @RequiredArgsConstructor
 public class QueryServiceImpl implements QueryService {
     private final QueryRepository repository;
-    private final FileService fileService;
     private final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     @Override
@@ -43,18 +39,15 @@ public class QueryServiceImpl implements QueryService {
     }
 
     @Override
-    public void search(QueryModel queryModel, Collection<Part> parts) {
+    public void search(QueryModel queryModel, List<String> names) {
         executorService.execute(() -> {
             try (BufferedWriter writer = Files.newBufferedWriter(Constants.PATH_RESULT_DIRECTORY.resolve(queryModel.getId() + ".txt"), StandardOpenOption.CREATE)) {
-                for (Part part : parts) {
-                    if (part.getSubmittedFileName() != null) {
-                        Path pathUploadFile = fileService.writeFile(part);
-                        try (BufferedReader reader = Files.newBufferedReader(pathUploadFile)) {
-                            while (reader.ready()) {
-                                String line = reader.readLine();
-                                if (line.toLowerCase().contains(queryModel.getQuery().toLowerCase())) {
-                                    writer.write("[" + part.getSubmittedFileName() + "]: " + line + "\n");
-                                }
+                for (String name : names) {
+                    try (BufferedReader reader = Files.newBufferedReader(Constants.PATH_UPLOAD_DIRECTORY.resolve(name))) {
+                        while (reader.ready()) {
+                            String line = reader.readLine();
+                            if (line.toLowerCase().contains(queryModel.getQuery().toLowerCase())) {
+                                writer.write("[" + name + "]: " + line + "\n");
                             }
                         }
                     }

@@ -6,7 +6,6 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Part;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 public class FileService {
     public FileService() throws IOException {
@@ -19,8 +18,7 @@ public class FileService {
         Files.copy(path, os);
     }
 
-    public Path writeFile(Part part) throws IOException {
+    public void writeFile(Part part) throws IOException {
         part.write(Constants.PATH_UPLOAD_DIRECTORY.resolve(part.getSubmittedFileName()).toString());
-        return Constants.PATH_UPLOAD_DIRECTORY.resolve(part.getSubmittedFileName());
     }
 }

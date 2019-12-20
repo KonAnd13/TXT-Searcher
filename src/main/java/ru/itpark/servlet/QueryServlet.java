@@ -18,20 +18,23 @@ import javax.servlet.http.Part;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 
 public class QueryServlet extends HttpServlet {
     private QueryService queryService;
+    private FileService fileService;
 
     @Override
     public void init() {
         try {
             var context = new InitialContext();
-            final FileService fileService = (FileService) context.lookup("java:/comp/env/bean/file-service");
+            fileService = (FileService) context.lookup("java:/comp/env/bean/file-service");
             final DataSource dataSource = (DataSource) context.lookup("java:/comp/env/jdbc/db");
             final QueryRepository repository = new QueryRepositorySqliteImpl(dataSource);
 
-            queryService = new QueryServiceImpl(repository, fileService);
+            queryService = new QueryServiceImpl(repository);
             queryService.init();
         } catch (NamingException e) {
             throw new DataAccesException();
@@ -54,7 +57,15 @@ public class QueryServlet extends HttpServlet {
         req.setAttribute("queries", queryService.getAllQueries());
         Collection<Part> parts = req.getParts();
 
+        List<String> names = new LinkedList<>();
+        for (Part part : parts) {
+            if (part.getSubmittedFileName() != null) {
+                fileService.writeFile(part);
+                names.add(part.getSubmittedFileName());
+            }
+        }
+
         req.getRequestDispatcher(req.getContextPath() + "/result").forward(req, resp);
-        queryService.search(queryModel, parts);
+        queryService.search(queryModel, names);
     }
 }
