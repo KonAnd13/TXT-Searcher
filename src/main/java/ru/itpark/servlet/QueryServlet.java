@@ -60,8 +60,7 @@ public class QueryServlet extends HttpServlet {
         List<String> names = new LinkedList<>();
         for (Part part : parts) {
             if (part.getSubmittedFileName() != null) {
-                fileService.writeFile(part);
-                names.add(part.getSubmittedFileName());
+                names.add(fileService.writeFile(part));
             }
         }
 
